@@ -92,19 +92,14 @@ class StyleTransfer(object):
             Note: Don't use the coefficient 0.5 as defined in the paper.
             Use the coefficient defined in the assignment handout.
         '''
-        ###############################
-        ## TO DO
-        self.content_loss = None
-        ###############################
+        self.content_loss = tf.reduce_sum((F - P) ** 2) / (4.0 * P.size)
         
     def _gram_matrix(self, F, N, M):
         """ Create and return the gram matrix for tensor F
             Hint: you'll first have to reshape F
         """
-        ###############################
-        ## TO DO
-        return None
-        ###############################
+        F = tf.reshape(F, (M, N))
+        return tf.matmul(tf.transpose(F), F)
 
     def _single_style_loss(self, a, g):
         """ Calculate the style loss at a certain layer
@@ -118,20 +113,21 @@ class StyleTransfer(object):
             2. we'll use the same coefficient for style loss as in the paper
             3. a and g are feature representation, not gram matrices
         """
-        ###############################
-        ## TO DO
-        return None
-        ###############################
+        N = a.shape[3]
+        M = a.shape[1] * a.shape[2]
+        A = self.gram_matrix(a, N, M)
+        G = self.gram_matrix(g, N, M)
+        return tf.reduce_sum((G - A) ** 2) / (4 * N * N * M * M)
 
     def _style_loss(self, A):
         """ Calculate the total style loss as a weighted sum 
         of style losses at all style layers
         Hint: you'll have to use _single_style_loss()
         """
-        ###############################
-        ## TO DO
-        self.style_loss = None
-        ###############################
+        n_layers = len(A)
+        E = [self._single_style_loss(A[i], getattr(self.vgg, self.style_layers[i])) for i in range(n_layers))
+
+        self.style_loss = sum([self.style_layer_w[i] * E[i] for i in range(n_layers))
 
     def losses(self):
         with tf.variable_scope('losses') as scope:

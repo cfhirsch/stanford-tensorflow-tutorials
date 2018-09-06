@@ -40,9 +40,7 @@ class VGG(object):
         """ Create a convolution layer with RELU using the weights and
         biases extracted from the VGG model at 'layer_idx'. You should use
         the function _weights() defined above to extract weights and biases.
-
-        _weights() returns numpy arrays, so you have to convert them to TF tensors.
-
+        _weights() returns numpy arrays, so you have to convert them to TF 
         Don't forget to apply relu to the output from the convolution.
         Inputs:
             prev_layer: the output tensor from the previous layer
@@ -52,10 +50,18 @@ class VGG(object):
         Hint for choosing strides size: 
             for small images, you probably don't want to skip any pixel
         """
-        ###############################
-        ## TO DO
-        out = None
-        ###############################
+        with tf.variable_scope(layer_name) as scope:
+            weightsArr, biasesArr = self._weights(layer_idx, layer_name)
+            weights = tf.constant(weightsArr, name='weights')
+            biases = tf.convert_to_tensor(biasesArr, name='bias')
+        
+            conv = tf.nn.conv2d(
+                prev_layer,
+                filter = weights,
+                strides = [1, 1, 1, 1],
+                padding = 'SAME')
+
+            out = tf.nn.relu(conv + biases)
         setattr(self, layer_name, out)
 
     def avgpool(self, prev_layer, layer_name):
@@ -69,10 +75,12 @@ class VGG(object):
 
         Hint for choosing strides and kszie: choose what you feel appropriate
         """
-        ###############################
-        ## TO DO
-        out = None
-        ###############################
+        with tf.variable_scope(layer_name) as scope:
+            out = tf.nn.avg_pool(
+                prev_layer,
+                ksize = [1, 1, 1, 1],
+                strides = [1, 1, 1, 1],
+                padding='SAME')
         setattr(self, layer_name, out)
 
     def load(self):
